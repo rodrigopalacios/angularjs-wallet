@@ -1,0 +1,22 @@
+body {
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.container header {
+    overflow: hidden;
+    border-bottom: 1px solid #E5E5E5;
+}
+
+#images {
+    padding: 20px 0;
+}
+
+footer {
+    border-top: 1px solid #E5E5E5;
+    overflow: hidden;
+    padding: 20px 0;
+}

@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h3 class="modal-title">Agregar GIF</h3>    
+    <p class="text-muted">Añade un gif favorito a tu wallet usando el nombre y la URL</p>
+</div>
+<div class="modal-body">
+    <form action="" role="form">
+        <div class="form-group">
+            <label for="name">Nombre</label>
+            <input type="text" id="name" ng-model="Gif.name" placeholder="Corgi bailarín" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="url">URL</label>
+            <input type="url" id="url" ng-model="Gif.url" placeholder="http://..." class="form-control">
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-link" ng-click="cancel()">Cancelar</button>
+    <button class="btn btn-primary" ng-click="save()">Agregar GIF</button>
+</div>
