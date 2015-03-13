@@ -1,128 +1,91 @@
-
 var gifwalletApp = angular.module('gifwalletApp', ['ui.bootstrap']);
-/*
-gifwalletApp.controller('GifListController', function($scope)
-{
 
-	var images = [{
-			name: 'Corgi Bailarín',
-			url: 'http://media.giphy.com/media/12co3H23YQXLYk/giphy.gif',
-			tags: ['corgi', 'baile', 'lol'],
-			favorite: true
-		}, {
-			name: 'Michael Scott',
-			url: 'http://media.giphy.com/media/zIPKUgO2Ln6XC/giphy.gif',
-			tags: ['the office', 'michael scott', 'asap'],
-			favorite: false
-		}];    
-		
-	$scope.giflist = images;
-	
-});
-*/
+gifwalletApp.controller('GifListController', ['$scope', '$rootScope', 'Storage',
+    function ($scope, $rootScope, Storage) {
+        $scope.giflist = Storage.list();
 
-gifwalletApp.controller('GifListController', ['$scope', '$rootScope','Storage', 
-	function($scope, $rootScope, Storage)
-	{
-		$scope.giflist = Storage.list();
-		
-		$rootScope.$on('StorageUpdatedEvent', 
-			function(event, data)
-			{
-				$scope.giflist = Storage.list();
-			}
-		);
-	}
+        $rootScope.$on('StorageUpdatedEvent',
+            function (event, data) {
+                $scope.giflist = Storage.list();
+            }
+        );
+    }
 ]);
 
-gifwalletApp.controller('MenuController', ['$scope', '$rootScope', '$modal', 'Storage',
-    function($scope, $rootScope, $modal, Storage) 
-	{
-		/*
-        $scope.add = function() 
-		{
-            var url = prompt('Ingrese una URL');
-            if (url != null) 
-			{
-                var image = {
-                    'name': 'Ejemplo',
-                    'url': url,
-                    'tags': [],
-                    'favorite': false
-                };
-                Storage.save(image);
-				
-				 $rootScope.$broadcast('StorageUpdatedEvent');
-            }
-        };
-		*/
-		$scope.add = function() {
-			$modal.open({
-				templateUrl: 'add_gif.html',
-				controller: function($scope, $modalInstance) 
-				{
-					$scope.Gif = {};
+gifwalletApp.controller('MenuController', ['$rootScope', '$scope', 'Storage', '$modal',
+    function ($rootScope, $scope, Storage, $modal) {
 
-                    $scope.save = function() 
-					{
+        $scope.add = function () {
+            $modal.open({
+                templateUrl: 'add_gif.html',
+                controller: function ($scope, $modalInstance) {
+                    $scope.Gif = {};
+
+                    $scope.save = function () {
                         var image = {
                             'name': $scope.Gif.name,
                             'url': $scope.Gif.url,
                             'tags': [],
                             'favorite': false
-						};
-                    
-						Storage.save(image);
-							
-						$rootScope.$broadcast('StorageUpdatedEvent');
-						$modalInstance.dismiss('cancel');
-					},	
-					
-					$scope.cancel = function() 
-					{
-						$modalInstance.dismiss('cancel');
-					};
-				}
-			});
-		};
-        
+                        };
+
+                        Storage.save(image);
+
+                        $rootScope.$broadcast('StorageUpdatedEvent');
+                        $modalInstance.dismiss('cancel');
+                    };
+
+                        $scope.cancel = function () {
+                            $modalInstance.dismiss('cancel');
+                        };
+                }
+            });
+        };
+
     }
 ]);
 
-gifwalletApp.service('Storage', ['$window', 
-	function($window) 
-	{
+gifwalletApp.service('Storage', ['$window', '$rootScope',
+    function ($window, $rootScope) {
         var images = [];
-        
-		if (!$window.localStorage) {
-			alert('No tienes localStorage activado');
-		} else {
-			images = $window.localStorage.getItem('gifWallet');
-		}
 
-        this.save = function(image) 
-		{
-			if (images == null) {
-				images = [];
-			}
-			else {
-				images = angular.fromJson(images);    
-			}
-			images.push(image);
-			imagesString = JSON.stringify(images);
-			$window.localStorage.setItem('gifWallet', imagesString);
+        if (!$window.localStorage) {
+            alert('No tienes localStorage activado');
+        } else {
+            var imagesString = $window.localStorage.getItem('gifWallet');
+            images = angular.fromJson(imagesString);
         }
 
-        this.get = function(key) {
+        this.save = function (image) {
+            if (images == null) {
+                images = [];
+            } else {
+                images = angular.fromJson(images);
+            }
+            images.push(image);
+            var imagesString = JSON.stringify(images);
+            $window.localStorage.setItem('gifWallet', imagesString);
+        };
 
-        }
+        this.remove = function (key) {
 
-        this.remove = function(key) {
+        };
 
-        }
+        this.list = function () {
+            return angular.fromJson($window.localStorage.getItem('gifWallet')).reverse();
+        };
 
-        this.list = function() {
-            return angular.fromJson($window.localStorage.getItem('gifWallet'));
+        this.get = function (key) {
+            return images[key];
+        };
+
+        this.favorite = function (key) {
+            images = images.reverse();
+            images[key].favorite = (images[key].favorite) ? false : true;
+            images = images.reverse();
+            var imagesString = JSON.stringify(images);
+            $window.localStorage.setItem('gifWallet', imagesString);
+            $rootScope.$broadcast('StorageUpdatedEvent');
         }
     }
 ]);
@@ -132,13 +95,20 @@ gifwalletApp.directive('favorite', ['Storage', '$compile',
         return {
             restrict: 'E',
             replace: true,
-            link: function(scope, elem, attrs) 
-			{
-				html = '<a><span class="glyphicon"></span> Favorito</a>';
+            link: function (scope, elem, attrs) {
+                var html = '<a ng-click="favItem(' + attrs.key + ')"><span class="glyphicon" ng-class="getClass(' + attrs.key + ')"></span> Favorito</a>';
+
+                scope.favItem = function (key) {
+                    Storage.favorite(key);
+                };
+
+                scope.getClass = function (key) {
+                    return (scope.giflist[key].favorite) ? 'glyphicon-heart' : 'glyphicon-heart-empty';
+                };
+
                 elem.replaceWith($compile(html)(scope));
             },
             scope: true
         }
-    }   
+    }
 ]);
-
